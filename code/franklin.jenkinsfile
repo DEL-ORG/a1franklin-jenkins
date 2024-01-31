@@ -21,7 +21,7 @@ pipeline {
     stages {
         stage ('Checkout') {
             steps {
-                dir("${WORKSPACE}/application/a1-franklin-jenkins/code") {
+                dir("${WORKSPACE}/application/code") {
                     checkout([
                         $class: 'GitSCM',
                         branches: [[name: "*/${params.BRANCH_NAME}"]],
