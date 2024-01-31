@@ -30,7 +30,7 @@ pipeline {
                         submoduleCfg: [],
                         userRemoteConfigs: [[
                         url: 'https://github.com/DEL-ORG/a1franklin-jenkins.git',
-                        credentialsId: 'github-auth'
+                        credentialsId: 'github-jenkins'
                         ]]
                     ])
                 }
