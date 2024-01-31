@@ -21,7 +21,7 @@ pipeline {
     stages {
         stage ('Checkout') {
             steps {
-                dir("${WORKSPACE}/application/a1-weather-project/code") {
+                dir("${WORKSPACE}/application/a1-franklin-jenkins/code") {
                     checkout([
                         $class: 'GitSCM',
                         branches: [[name: "*/${params.BRANCH_NAME}"]],
@@ -39,7 +39,7 @@ pipeline {
         stage('run') {
             steps {
                 script {
-                    dir("${WORKSPACE}/application/a1-weather-project/code") {
+                    dir("${WORKSPACE}/application/a1-franklin-jenkins/code") {
                         sh """
                             pwd
                             ls -l
