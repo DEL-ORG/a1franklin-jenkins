@@ -30,7 +30,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                dir("${WORKSPACE}/application/a1franklin-jenkins/code") {
+                dir("${WORKSPACE}/code") {
                     checkout([
                         $class: 'GitSCM',
                         branches: [[name: "*/${params.BRANCH_NAME}"]],
@@ -49,7 +49,7 @@ pipeline {
         stage('Build DB') {
             steps {
                 script {
-                    dir("${WORKSPACE}/code") {
+                    dir("${WORKSPACE}/code/db") {
                         sh """
                             docker build -t ${env.ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${env.TAG} .
                         """
@@ -61,7 +61,7 @@ pipeline {
         stage('Build Auth') {
             steps {
                 script {
-                    dir("${WORKSPACE}/code") {
+                    dir("${WORKSPACE}/code/auth") {
                         sh """
                             docker build -t ${env.ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${env.TAG} .
                         """
@@ -73,7 +73,7 @@ pipeline {
         stage('Build Redis') {
             steps {
                 script {
-                    dir("${WORKSPACE}/code") {
+                    dir("${WORKSPACE}/code/redis") {
                         sh """
                             docker build -t ${env.ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${env.TAG} .
                         """
@@ -85,7 +85,7 @@ pipeline {
         stage('Build UI') {
             steps {
                 script {
-                    dir("${WORKSPACE}/code") {
+                    dir("${WORKSPACE}/code/ui") {
                         sh """
                             docker build -t ${env.ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${env.TAG} .
                         """
