@@ -49,7 +49,7 @@ pipeline {
         stage('Build DB') {
             steps {
                 script {
-                    dir("${WORKSPACE}/code/db") {
+                    dir("${WORKSPACE}/code/code/db") {
                         sh """
                             docker build -t ${env.ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${env.TAG} .
                         """
@@ -61,7 +61,7 @@ pipeline {
         stage('Build Auth') {
             steps {
                 script {
-                    dir("${WORKSPACE}/code/auth") {
+                    dir("${WORKSPACE}/code/code/auth") {
                         sh """
                             docker build -t ${env.ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${env.TAG} .
                         """
@@ -73,7 +73,7 @@ pipeline {
         stage('Build Redis') {
             steps {
                 script {
-                    dir("${WORKSPACE}/code/redis") {
+                    dir("${WORKSPACE}/code/code/redis") {
                         sh """
                             docker build -t ${env.ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${env.TAG} .
                         """
@@ -85,7 +85,7 @@ pipeline {
         stage('Build UI') {
             steps {
                 script {
-                    dir("${WORKSPACE}/code/ui") {
+                    dir("${WORKSPACE}/code/code/ui") {
                         sh """
                             docker build -t ${env.ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${env.TAG} .
                         """
