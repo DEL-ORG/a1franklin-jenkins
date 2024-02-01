@@ -7,13 +7,13 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-east-1'
-        ECR_REGISTRY = '529881641329.dkr.ecr.us-east-1.amazonaws.com'
-        TAG = 'latest'
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
+        // ECR_REGISTRY = '529881641329.dkr.ecr.us-east-1.amazonaws.com'
+        // TAG = 'latest'
     }
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '7'))
-        // skipDefaultCheckout(true)
         disableConcurrentBuilds()
         timeout(time: 10, unit: 'MINUTES')
         timestamps()
@@ -46,52 +46,71 @@ pipeline {
             }
         }
 
-        stage('Build DB') {
+        stage('Docker Login') {
             steps {
                 script {
-                    dir("${WORKSPACE}/code/code/db") {
+                    withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh """
-                            sudo docker build -t ${env.ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${env.TAG} .
+                            docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD
                         """
                     }
                 }
             }
         }
 
-        stage('Build Auth') {
-            steps {
-                script {
-                    dir("${WORKSPACE}/code/code/auth") {
-                        sh """
-                            sudo docker build -t ${env.ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${env.TAG} .
-                        """
-                    }
-                }
-            }
-        }
+        // stage('Build DB') {
+        //     steps {
+        //         script {
+        //             dir("${WORKSPACE}/code/db") {
+        //                 sh """
+        //                     sudo docker build -t ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG} .
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Build Redis') {
-            steps {
-                script {
-                    dir("${WORKSPACE}/code/code/redis") {
-                        sh """
-                           sudo docker build -t ${env.ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${env.TAG} .
-                        """
-                    }
-                }
-            }
-        }
+        // stage('Build Auth') {
+        //     steps {
+        //         script {
+        //             dir("${WORKSPACE}/code/auth") {
+        //                 sh """
+        //                     sudo docker build -t ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG} .
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Build UI') {
-            steps {
-                script {
-                    dir("${WORKSPACE}/code/code/ui") {
-                        sh """
-                            sudo docker build -t ${env.ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${env.TAG} .
-                        """
-                    }
-                }
-            }
+        // stage('Build Redis') {
+        //     steps {
+        //         script {
+        //             dir("${WORKSPACE}/code/redis") {
+        //                 sh """
+        //                     sudo docker build -t ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG} .
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
+
+        // stage('Build UI') {
+        //     steps {
+        //         script {
+        //             dir("${WORKSPACE}/code/ui") {
+        //                 sh """
+        //                     sudo docker build -t ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG} .
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
+    }
+
+    post {
+        always {
+            // Logout from Docker Hub after the pipeline
+            sh 'docker logout'
         }
     }
 }
