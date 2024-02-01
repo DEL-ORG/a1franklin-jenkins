@@ -1,30 +1,34 @@
 pipeline {
     agent any
 
-    }
-
-     triggers {
+    triggers {
         githubPush()
     }
-    
+
+    environment {
+        AWS_REGION = 'us-east-1'
+        ECR_REGISTRY = '529881641329.dkr.ecr.us-east-1.amazonaws.com'
+        TAG = 'latest'
+    }
+
     options {
         buildDiscarder(logRotator(numToKeepStr: '7'))
         // skipDefaultCheckout(true)
         disableConcurrentBuilds()
-        timeout (time: 10, unit: 'MINUTES')
+        timeout(time: 10, unit: 'MINUTES')
         timestamps()
     }
+
     parameters {
         string(name: 'BRANCH_NAME', defaultValue: 'main', description: '')
-        // string(name: 'DB_IMAGE_VERSION', defaultValue: 'develop', description: '')
-        // string(name: 'REDIS_IMAGE_VERSION', defaultValue: 'develop', description: '')
-        // string(name: 'UI_IMAGE_VERSION', defaultValue: 'develop', description: '')
-        // string(name: 'WEATHER_IMAGE_VERSION', defaultValue: 'develop', description: '')
-        // string(name: 'AUTH_IMAGE_VERSION', defaultValue: 'develop', description: '')
+        string(name: 'DB_IMAGE_NAME', defaultValue: 'db', description: '')
+        string(name: 'AUTH_IMAGE_NAME', defaultValue: 'auth', description: '')
+        string(name: 'REDIS_IMAGE_NAME', defaultValue: 'redis', description: '')
+        string(name: 'UI_IMAGE_NAME', defaultValue: 'ui', description: '')
     }
 
     stages {
-        stage ('Checkout') {
+        stage('Checkout') {
             steps {
                 dir("${WORKSPACE}/application/a1franklin-jenkins/code") {
                     checkout([
@@ -34,24 +38,60 @@ pipeline {
                         extensions: [[$class: 'LocalBranch']],
                         submoduleCfg: [],
                         userRemoteConfigs: [[
-                        url: 'https://github.com/DEL-ORG/a1franklin-jenkins.git',
-                        credentialsId: 'github-jenkins'
+                            url: 'https://github.com/DEL-ORG/a1franklin-jenkins.git',
+                            credentialsId: 'github-jenkins'
                         ]]
                     ])
                 }
             }
         }
-        stage('run') {
+
+        stage('Build DB') {
             steps {
                 script {
-                    dir("${WORKSPACE}/application/a1-franklin-jenkins/code") {
+                    dir("${WORKSPACE}/code") {
                         sh """
-                            pwd
-                            ls -l
+                            docker build -t ${env.ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${env.TAG} .
                         """
-                            
+                    }
+                }
+            }
+        }
+
+        stage('Build Auth') {
+            steps {
+                script {
+                    dir("${WORKSPACE}/code") {
+                        sh """
+                            docker build -t ${env.ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${env.TAG} .
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Build Redis') {
+            steps {
+                script {
+                    dir("${WORKSPACE}/code") {
+                        sh """
+                            docker build -t ${env.ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${env.TAG} .
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Build UI') {
+            steps {
+                script {
+                    dir("${WORKSPACE}/code") {
+                        sh """
+                            docker build -t ${env.ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${env.TAG} .
+                        """
                     }
                 }
             }
         }
     }
+}
