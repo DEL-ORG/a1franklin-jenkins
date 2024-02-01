@@ -51,7 +51,7 @@ pipeline {
                 script {
                     dir("${WORKSPACE}/code/code/db") {
                         sh """
-                            docker build -t ${env.ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${env.TAG} .
+                            sudo docker build -t ${env.ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${env.TAG} .
                         """
                     }
                 }
@@ -63,7 +63,7 @@ pipeline {
                 script {
                     dir("${WORKSPACE}/code/code/auth") {
                         sh """
-                            docker build -t ${env.ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${env.TAG} .
+                            sudo docker build -t ${env.ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${env.TAG} .
                         """
                     }
                 }
@@ -75,7 +75,7 @@ pipeline {
                 script {
                     dir("${WORKSPACE}/code/code/redis") {
                         sh """
-                            docker build -t ${env.ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${env.TAG} .
+                           sudo docker build -t ${env.ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${env.TAG} .
                         """
                     }
                 }
@@ -87,7 +87,7 @@ pipeline {
                 script {
                     dir("${WORKSPACE}/code/code/ui") {
                         sh """
-                            docker build -t ${env.ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${env.TAG} .
+                            sudo docker build -t ${env.ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${env.TAG} .
                         """
                     }
                 }
