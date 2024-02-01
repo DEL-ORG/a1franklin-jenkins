@@ -7,9 +7,9 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-east-1'
-        DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
-        // ECR_REGISTRY = '529881641329.dkr.ecr.us-east-1.amazonaws.com'
-        // TAG = 'latest'
+        // DOCKER_HUB_CREDENTIALS = credentials('dockerhub')
+        ECR_REGISTRY = '529881641329.dkr.ecr.us-east-1.amazonaws.com'
+        TAG = 'latest'
     }
 
     options {
@@ -46,72 +46,72 @@ pipeline {
             }
         }
         
-        stage('Docker Login') {
+        // stage('Docker Login') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+        //                 sh """
+        //                 ls
+        //                     // docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
+
+        stage('Build DB') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: DOCKER_HUB_CREDENTIALS, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    dir("${WORKSPACE}/code/db") {
                         sh """
-                        ls
-                            // docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD
+                            sudo docker build -t ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG} .
                         """
                     }
                 }
             }
         }
 
-        // stage('Build DB') {
-        //     steps {
-        //         script {
-        //             dir("${WORKSPACE}/code/db") {
-        //                 sh """
-        //                     sudo docker build -t ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG} .
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Build Auth') {
+            steps {
+                script {
+                    dir("${WORKSPACE}/code/auth") {
+                        sh """
+                            sudo docker build -t ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG} .
+                        """
+                    }
+                }
+            }
+        }
 
-        // stage('Build Auth') {
-        //     steps {
-        //         script {
-        //             dir("${WORKSPACE}/code/auth") {
-        //                 sh """
-        //                     sudo docker build -t ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG} .
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Build Redis') {
+            steps {
+                script {
+                    dir("${WORKSPACE}/code/redis") {
+                        sh """
+                            sudo docker build -t ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG} .
+                        """
+                    }
+                }
+            }
+        }
 
-        // stage('Build Redis') {
-        //     steps {
-        //         script {
-        //             dir("${WORKSPACE}/code/redis") {
-        //                 sh """
-        //                     sudo docker build -t ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG} .
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Build UI') {
-        //     steps {
-        //         script {
-        //             dir("${WORKSPACE}/code/ui") {
-        //                 sh """
-        //                     sudo docker build -t ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG} .
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
-    }
-
-    post {
-        always {
-            // Logout from Docker Hub after the pipeline
-            sh 'docker logout'
+        stage('Build UI') {
+            steps {
+                script {
+                    dir("${WORKSPACE}/code/ui") {
+                        sh """
+                            sudo docker build -t ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG} .
+                        """
+                    }
+                }
+            }
         }
     }
+
+    // post {
+    //     always {
+    //         // Logout from Docker Hub after the pipeline
+    //         sh 'docker logout'
+    //     }
+    // }
 }
