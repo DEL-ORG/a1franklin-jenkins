@@ -54,6 +54,75 @@ pipeline {
             }
         }
 
+        stage('pushing to auth') {
+            steps {
+                script {
+                    dir("${WORKSPACE}/code/auth"){
+                        sh """
+                        cat dockerfile
+                        """
+                    }
+                    
+                        
+                }
+            }
+        }
+
+         stage('pushing to db') {
+            steps {
+                script {
+                    dir("${WORKSPACE}/code/db"){
+                        sh """
+                        cat dockerfile
+                        """
+                    }
+                    
+                        
+                }
+            }
+        }
+
+         stage('pushing to redis') {
+            steps {
+                script {
+                     dir("${WORKSPACE}/code/redis"){
+                        sh """
+                        cat dockerfile
+                        """
+                     }
+                    
+                        
+                }
+            }
+        }
+
+         stage('pushing to ui') {
+            steps {
+                script {
+                     dir("${WORKSPACE}/code/ui") {
+                        sh """
+                        cat dockerfile
+                        """
+
+                     }      
+                }
+            }
+        }
+
+        stage('pushing to weather') {
+            steps {
+                script {
+                     dir("${WORKSPACE}/code/weather") {
+                        sh """
+                        cat dockerfile
+                        """
+
+                     }      
+                }
+            }
+        }
+
+
         stage('ECR Login') {
             steps {
                 script {
@@ -84,40 +153,40 @@ pipeline {
             }
         }
 
-        stage('Build Redis') {
-            steps {
-                script {
-                    dir("${WORKSPACE}/code/redis") {
-                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG} ."
-                    }
-                }
-            }
-        }
+        // stage('Build Redis') {
+        //     steps {
+        //         script {
+        //             dir("${WORKSPACE}/code/redis") {
+        //                 sh "sudo docker build -t ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG} ."
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Build UI') {
-            steps {
-                script {
-                    dir("${WORKSPACE}/code/ui") {
-                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG} ."
-                    }
-                }
-            }
-        }
+        // stage('Build UI') {
+        //     steps {
+        //         script {
+        //             dir("${WORKSPACE}/code/ui") {
+        //                 sh "sudo docker build -t ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG} ."
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Push Images to ECR') {
-            steps {
-                script {
-                    sh "sudo docker push ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG}"
-                    sh "sudo docker push ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG}"
-                    sh "sudo docker push ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG}"
-                    sh "sudo docker push ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG}"
-                }
-            }
-        }
+        // stage('Push Images to ECR') {
+        //     steps {
+        //         script {
+        //             sh "sudo docker push ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG}"
+        //             sh "sudo docker push ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG}"
+        //             sh "sudo docker push ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG}"
+        //             sh "sudo docker push ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG}"
+        //         }
+        //     }
+        // }
     }
 
     post {
-        always {
+        always {                                     
             script {
                 sh "sudo docker logout ${ECR_REGISTRY}"
             }
