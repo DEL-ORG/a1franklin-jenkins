@@ -30,26 +30,24 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                dir("${WORKSPACE}/code") {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: "*/${params.BRANCH_NAME}"]],
-                        doGenerateSubmoduleConfigurations: false,
-                        extensions: [[$class: 'LocalBranch']],
-                        submoduleCfg: [],
-                        userRemoteConfigs: [[
-                            url: 'https://github.com/DEL-ORG/a1franklin-jenkins.git',
-                            credentialsId: 'jenkins-github-new'
-                        ]]
-                    ])
-                }
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${params.BRANCH_NAME}"]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'LocalBranch']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/DEL-ORG/a1franklin-jenkins.git',
+                        credentialsId: 'jenkins-github-new'
+                    ]]
+                ])
             }
         }
 
         stage('ECR Login') {
             steps {
                 script {
-                    withCredentials([awsCredentials(credentialsId: AWS_CREDENTIALS_ID, accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    withCredentials([aws(credentials: 'your-aws-credentials-id', region: 'us-east-1')]) {
                         sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
                     }
                 }
@@ -60,7 +58,7 @@ pipeline {
             steps {
                 script {
                     dir("${WORKSPACE}/code/db") {
-                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG} ."
+                        sh "docker build -t ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG} ."
                     }
                 }
             }
@@ -70,7 +68,7 @@ pipeline {
             steps {
                 script {
                     dir("${WORKSPACE}/code/auth") {
-                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG} ."
+                        sh "docker build -t ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG} ."
                     }
                 }
             }
@@ -80,7 +78,7 @@ pipeline {
             steps {
                 script {
                     dir("${WORKSPACE}/code/redis") {
-                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG} ."
+                        sh "docker build -t ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG} ."
                     }
                 }
             }
@@ -90,7 +88,7 @@ pipeline {
             steps {
                 script {
                     dir("${WORKSPACE}/code/ui") {
-                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG} ."
+                        sh "docker build -t ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG} ."
                     }
                 }
             }
