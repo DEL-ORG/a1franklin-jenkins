@@ -9,7 +9,6 @@ pipeline {
         AWS_REGION = 'us-east-1'
         ECR_REGISTRY = '529881641329.dkr.ecr.us-east-1.amazonaws.com'
         TAG = 'latest'
-        AWS_CREDENTIALS_ID = 'your-aws-credentials-id'
     }
 
     options {
@@ -28,27 +27,38 @@ pipeline {
     }
 
     stages {
+        stage('Print Docker Version') {
+            steps {
+                script {
+                    // Print Docker version
+                    sh 'docker --version'
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: "*/${params.BRANCH_NAME}"]],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'LocalBranch']],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/DEL-ORG/a1franklin-jenkins.git',
-                        credentialsId: 'jenkins-github-new'
-                    ]]
-                ])
+                dir("${WORKSPACE}/code") {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "*/${params.BRANCH_NAME}"]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [[$class: 'LocalBranch']],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/DEL-ORG/a1franklin-jenkins.git',
+                            credentialsId: 'jenkins-github-new'
+                        ]]
+                    ])
+                }
             }
         }
 
         stage('ECR Login') {
             steps {
                 script {
-                    withCredentials([aws(credentials: 'your-aws-credentials-id', region: 'us-east-1')]) {
-                        sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-credentials', region: AWS_REGION]]) {
+                        sh "sudo aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${ECR_REGISTRY}"
                     }
                 }
             }
@@ -58,7 +68,7 @@ pipeline {
             steps {
                 script {
                     dir("${WORKSPACE}/code/db") {
-                        sh "docker build -t ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG} ."
+                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG} ."
                     }
                 }
             }
@@ -68,7 +78,7 @@ pipeline {
             steps {
                 script {
                     dir("${WORKSPACE}/code/auth") {
-                        sh "docker build -t ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG} ."
+                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG} ."
                     }
                 }
             }
@@ -78,7 +88,7 @@ pipeline {
             steps {
                 script {
                     dir("${WORKSPACE}/code/redis") {
-                        sh "docker build -t ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG} ."
+                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG} ."
                     }
                 }
             }
@@ -88,8 +98,19 @@ pipeline {
             steps {
                 script {
                     dir("${WORKSPACE}/code/ui") {
-                        sh "docker build -t ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG} ."
+                        sh "sudo docker build -t ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG} ."
                     }
+                }
+            }
+        }
+
+        stage('Push Images to ECR') {
+            steps {
+                script {
+                    sh "sudo docker push ${ECR_REGISTRY}/${params.DB_IMAGE_NAME}:${TAG}"
+                    sh "sudo docker push ${ECR_REGISTRY}/${params.AUTH_IMAGE_NAME}:${TAG}"
+                    sh "sudo docker push ${ECR_REGISTRY}/${params.REDIS_IMAGE_NAME}:${TAG}"
+                    sh "sudo docker push ${ECR_REGISTRY}/${params.UI_IMAGE_NAME}:${TAG}"
                 }
             }
         }
@@ -97,8 +118,9 @@ pipeline {
 
     post {
         always {
-            // Logout from ECR after the pipeline
-            sh 'docker logout ${ECR_REGISTRY}'
+            script {
+                sh "sudo docker logout ${ECR_REGISTRY}"
+            }
         }
     }
 }
