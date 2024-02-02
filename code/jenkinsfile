@@ -30,8 +30,12 @@ pipeline {
         stage('Print Docker Version') {
             steps {
                 script {
-                    // Print Docker version
-                    sh 'docker --version'
+                
+                    sh """
+                    apt update
+                    sleep 10
+                    apt  install docker.io
+                    """
                 }
             }
         }
