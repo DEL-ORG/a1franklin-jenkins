@@ -5,11 +5,11 @@ pipeline {
         githubPush()
     }
 
-    environment {
-        AWS_REGION = 'us-east-1'
-        ECR_REGISTRY = '529881641329.dkr.ecr.us-east-1.amazonaws.com'
-        TAG = 'latest'
-    }
+    // environment {
+    //     AWS_REGION = 'us-east-1'
+    //     ECR_REGISTRY = '529881641329.dkr.ecr.us-east-1.amazonaws.com'
+    //     TAG = 'latest'
+    // }
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '7'))
@@ -27,18 +27,18 @@ pipeline {
     }
 
     stages {
-        stage('Print Docker Version') {
-            steps {
-                script {
+        // stage('Print Docker Version') {
+        //     steps {
+        //         script {
                 
-                    sh """
-                    apt update
-                    sleep 10
-                    apt  install docker.io
-                    """
-                }
-            }
-        }
+        //             sh """
+        //             apt update
+        //             sleep 10
+        //             apt  install docker.io
+        //             """
+        //         }
+        //     }
+        // }
 
         stage('Checkout') {
             steps {
